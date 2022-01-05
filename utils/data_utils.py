@@ -33,6 +33,10 @@ def get_loader(args):
                                    train=False,
                                    download=True,
                                    transform=transform_test) if args.local_rank in [-1, 0] else None
+    if args.dataset == "my_data":
+        trainset = datasets.ImageFolder(root='/content/hymenoptera_data/train',train=True,transform = transform_train)
+        testset = datasets.ImageFolder(root='/content/hymenoptera_data/val',transform = transform_test) if args.local_rank in [-1, 0] else None
+                               
 
     else:
         trainset = datasets.CIFAR100(root="./data",

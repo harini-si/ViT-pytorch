@@ -1,7 +1,9 @@
 import logging
-
+import numpy as np
 import torch
-
+from PIL import Image
+from pathlib import Path
+import matplotlib.pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, RandomSampler, DistributedSampler, SequentialSampler
 
@@ -14,6 +16,7 @@ def get_loader(args):
         torch.distributed.barrier()
 
     transform_train = transforms.Compose([
+        transforms.Resize((args.img_size, args.img_size)),
         transforms.RandomResizedCrop((args.img_size, args.img_size), scale=(0.05, 1.0)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
@@ -49,7 +52,7 @@ def get_loader(args):
                                     transform=transform_test) if args.local_rank in [-1, 0] else None
     if args.local_rank == 0:
         torch.distributed.barrier()
-
+    
     train_sampler = RandomSampler(trainset) if args.local_rank == -1 else DistributedSampler(trainset)
     test_sampler = SequentialSampler(testset)
     train_loader = DataLoader(trainset,
@@ -64,3 +67,4 @@ def get_loader(args):
                              pin_memory=True) if testset is not None else None
 
     return train_loader, test_loader
+
